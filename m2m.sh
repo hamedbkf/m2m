@@ -93,17 +93,18 @@ if [[ $multiple_switch = true ]];then
 	for file in "${!multiple_download_dict[@]}";do
 		url="${multiple_download_dict[$file]}"
 
-		echo -e "$green[*] Initiating download for stream $counter $norm"
+		echo -e "$blue[*] Initiating download for stream $counter $norm"
 		yt-dlp -f 91 "$url" -o $MULTI_DIR/ytvideo.webm 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log
 		
 		if [[ $? -eq 0 ]];then
 	
-			echo -e "$blue[*] Stream $counter downloaded $norm"
-			echo -e "$green[*] Converting stream $counter $norm"
+			echo -e "$green[✓] Stream $counter downloaded $norm"
+			echo -e "$blue[*] Converting stream $counter $norm"
 			ffmpeg -i "$MULTI_DIR/ytvideo.webm" "$MULTI_DIR/$file" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
 
 			if [[ $? -eq 0  ]];then
-				echo -e "$green[*] Stream $counter saved to filesystem$norm \n"
+				echo -e "$green[✓] Stream $counter saved to filesystem$norm \n"
+				rm $MULTI_DIR/ytvideo.*
 			else
 				echo -e "$red[!] An error occured $norm"
 				echo -e "$red[!] Error saved at $ERROR_LOG"
