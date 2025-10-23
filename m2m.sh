@@ -6,59 +6,116 @@ green="\033[0;32m"
 yellow="\033[0;33m"
 blue="\033[0;34m"
 
-if [ $# -ne 2  ]; then
-	echo -e "$red [!] Usage:m2m <universal_resource_locater> <filename.ext> $norm"
+if [[ $# -gt 2 ]]; then
+	echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext>$norm"
+	echo "Or for multiple downloads"
+	echo -e "$red[!] Usage: m2m -m <download_count>$norm"
 	exit 1
-fi	
+fi
 
 #Making arrangements before executing the script
 
 mkdir -p "$HOME/Music/ytdownloads"
+mkdir -p "$HOME/Music/ytdownloads/multi_mode"
 mkdir -p "$HOME/.local/m2m_error_log"
 YTDIR="$HOME/Music/ytdownloads"
+MULTI_DIR="$YTDIR/multi_mode"
 ERROR_LOG="$HOME/.local/m2m_error_log"
 DATE=$(date +'%a_%b_%d_%H_%M_%S')
+LINK=$1
+file_name=$2
+multiple_switch=false
 
-echo -e  "$blue[*] Downloading stream from youtube $norm"
+case $1 in
+	-m)	multiple_switch=true;multiple_switch_counter=$2;;
+esac
 
-yt-dlp -f 91 $1 -o "$YTDIR/ytvideo.webm" 1> /dev/null 2>$ERROR_LOG/$DATE-yt-dlp.log
 
-#Block telling the user whether the stream was downloaded or not
+if [[ $multiple_switch != true ]];then
 
-if [[ $? -eq 0 ]];then
+	echo -e  "$blue[*] Downloading stream from youtube $norm"
+
+	yt-dlp -f 91 $LINK -o "$YTDIR/ytvideo.webm" 1> /dev/null 2>$ERROR_LOG/$DATE-yt-dlp.log
+
+	#Block telling the user whether the stream was downloaded or not
+
+	if [[ $? -eq 0 ]];then
 	
-	echo -e "$blue[*] Stream downloaded $norm"
-	read -p "Press 1 to re-encode and 2 to copy existing streams: " choice
+		echo -e "$blue[*] Stream downloaded $norm"
+		read -p "Press 1 to re-encode and 2 to copy existing streams: " choice
 
-	echo -e "These are the directories in $YTDIR \n$(ls $YTDIR )\nWhere do you want to save this one?"
-	read -p ">> " file_save_location 
+		echo -e "These are the directories in $YTDIR \n$(ls $YTDIR )\nWhere do you want to save this one?"
+		read -p ">> " file_save_location 
 
-else
-	echo -e "$red[!] Stream not downloaded $norm"
-	echo -e "$red[!] Error saved at $ERROR_LOG $norm"
-	exit 1
+	else
+		echo -e "$red[!] Stream not downloaded $norm"
+		echo -e "$red[!] Error saved at $ERROR_LOG $norm"
+		exit 1
+	fi
+
+
+	#Block asking the user to make a choice between re-encoding and copying 
+
+	if [[ "$choice" -eq 1 ]];then
+		echo -e "$blue[*] Re-encoding the stream...$norm"
+		ffmpeg -i "$YTDIR/ytvideo.webm" "$YTDIR/$file_save_location/$file_name" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-re-encode.log"
+	elif [[ "$choice" -eq 2  ]];then 
+		echo -e "$blue[*] Copying the original streams...$norm"
+		ffmpeg -i "$YTDIR/ytvideo.webm" -c copy  "$YTDIR/$file_save_location/$file_name" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-copy.log"
+	else
+		echo -e "$red[!] Enter a valid choice $norm"
+		exit 1
+	fi
+
+	#Block telling the user the final action and removing the ghost file.
+
+	if [[ $? -eq 0  ]];then
+		rm $YTDIR/ytvideo.web*
+		echo -e "$green[*] Streams Saved to filesystem at $YTDIR !! $norm" 
+	else
+		echo -e "$red[!] An error occured $norm"
+		echo -e "$red[!] Error saved at $ERROR_LOG $norm"
+	fi
+
 fi
 
+if [[ $multiple_switch = true ]];then
+	#Taking the multiple links and file names from the user
+	declare -A multiple_download_dict
 
-#Block asking the user to make a choice between re-encoding and copying 
+	for((i=1;i<=$multiple_switch_counter;i++));do
+	read -p "Enter the URL: " url
+	read -p "Enter the name to save it as: " save_file
+	multiple_download_dict["$save_file"]="$url"
+	done
 
-if [[ "$choice" -eq 1 ]];then
-	echo -e "$blue[*] Re-encoding the stream...$norm"
-	ffmpeg -i "$YTDIR/ytvideo.webm" "$YTDIR/$file_save_location/$2" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-re-encode.log"
-elif [[ "$choice" -eq 2  ]];then 
-	echo -e "$blue[*] Copying the original streams...$norm"
-	ffmpeg -i "$YTDIR/ytvideo.webm" -c copy  "$YTDIR/$file_save_location/$2" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-copy.log"
-else
-	echo -e "$red[!] Enter a valid choice $norm"
-	exit 1
-fi
+	counter=1
+	for file in "${!multiple_download_dict[@]}";do
+		url="${multiple_download_dict[$file]}"
 
-#Block telling the user the final action and removing the ghost file.
+		echo -e "$green[*] Initiating download for stream $counter $norm"
+		yt-dlp -f 91 "$url" -o $MULTI_DIR/ytvideo.webm 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log
+		
+		if [[ $? -eq 0 ]];then
+	
+			echo -e "$blue[*] Stream $counter downloaded $norm"
+			echo -e "$green[*] Converting stream $counter $norm"
+			ffmpeg -i "$MULTI_DIR/ytvideo.webm" "$MULTI_DIR/$file" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
 
-if [[ $? -eq 0  ]];then
-	rm $YTDIR/ytvideo.web*
-	echo -e "$green[*] Streams Saved to filesystem at $YTDIR !! $norm" 
-else
-	echo -e "$red[!] An error occured $norm"
-	echo -e "$red[!] Error saved at $ERROR_LOG $norm"
+			if [[ $? -eq 0  ]];then
+				echo -e "$green[*] Stream $counter saved to filesystem$norm \n"
+			else
+				echo -e "$red[!] An error occured $norm"
+				echo -e "$red[!] Error saved at $ERROR_LOG"
+				continue
+			fi
+
+		else
+			echo -e "$red[!] Stream $counter not downloaded $norm"
+			echo -e "$red[!] Error saved at $ERROR_LOG $norm \n"
+			continue
+		fi
+		counter=$(($counter+1))	
+	done
+
 fi
