@@ -42,30 +42,17 @@ if [[ $multiple_switch != true ]];then
 	if [[ $? -eq 0 ]];then
 	
 		echo -e "$blue[*] Stream downloaded $norm"
-		read -p "Press 1 to re-encode and 2 to copy existing streams: " choice
 
 		echo -e "These are the directories in $YTDIR \n$(ls $YTDIR )\nWhere do you want to save this one?"
-		read -p ">> " file_save_location 
-
+		read -p ">> " file_save_location
 	else
 		echo -e "$red[!] Stream not downloaded $norm"
 		echo -e "$red[!] Error saved at $ERROR_LOG $norm"
 		exit 1
 	fi
-
-
-	#Block asking the user to make a choice between re-encoding and copying 
-
-	if [[ "$choice" -eq 1 ]];then
-		echo -e "$blue[*] Re-encoding the stream...$norm"
-		ffmpeg -i "$YTDIR/ytvideo.webm" "$YTDIR/$file_save_location/$file_name" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-re-encode.log"
-	elif [[ "$choice" -eq 2  ]];then 
-		echo -e "$blue[*] Copying the original streams...$norm"
-		ffmpeg -i "$YTDIR/ytvideo.webm" -c copy  "$YTDIR/$file_save_location/$file_name" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-copy.log"
-	else
-		echo -e "$red[!] Enter a valid choice $norm"
-		exit 1
-	fi
+	
+	echo -e "$blue[*] Converting the stream...$norm"
+	ffmpeg -i "$YTDIR/ytvideo.webm" "$YTDIR/$file_save_location/$file_name" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
 
 	#Block telling the user the final action and removing the ghost file.
 
