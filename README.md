@@ -26,6 +26,7 @@ Change the extension form `.mp3` to anything you like.
 m2m -m 5
 ```
 You can change the **5** to the number of files you want to download.
+(Or you can set is as **n** if you want it to run infinitely until you type `done` as the url.)
 It would prompt you for the *URL* and then for the name you want to save the file as
 ```bash
 m2m -m 2

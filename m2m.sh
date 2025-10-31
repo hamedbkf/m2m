@@ -30,6 +30,38 @@ case $1 in
 	-m)	multiple_switch=true;multiple_switch_counter=$2;;
 esac
 
+multi_dnc(){
+	counter=1
+	for file in "${!multiple_download_dict[@]}";do
+		url="${multiple_download_dict[$file]}"
+
+		echo -e "$blue[*] Initiating download for stream $counter $norm"
+		yt-dlp -f best "$url" -o $MULTI_DIR/ytvideo.webm 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log
+		
+		if [[ $? -eq 0 ]];then
+	
+			echo -e "$green[✓] Stream $counter downloaded $norm"
+			echo -e "$blue[*] Converting stream $counter $norm"
+			ffmpeg -i "$MULTI_DIR/ytvideo.webm" "$MULTI_DIR/$file" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
+
+			if [[ $? -eq 0  ]];then
+				echo -e "$green[✓] Stream $counter saved to filesystem$norm \n"
+				rm $MULTI_DIR/ytvideo.*
+			else
+				echo -e "$red[!] An error occured $norm"
+				echo -e "$red[!] Error saved at $ERROR_LOG"
+				continue
+			fi
+
+		else
+			echo -e "$red[!] Stream $counter not downloaded $norm"
+			echo -e "$red[!] Error saved at $ERROR_LOG $norm \n"
+			continue
+		fi
+		counter=$(($counter+1))	
+	done
+
+}
 
 if [[ $multiple_switch != true ]];then
 
@@ -66,7 +98,7 @@ if [[ $multiple_switch != true ]];then
 
 fi
 
-if [[ $multiple_switch = true ]];then
+if [[ $multiple_switch = true && $multiple_switch_counter != "n" ]];then
 	#Taking the multiple links and file names from the user
 	declare -A multiple_download_dict
 
@@ -75,35 +107,20 @@ if [[ $multiple_switch = true ]];then
 	read -p "Enter the name to save it as: " save_file
 	multiple_download_dict["$save_file"]="$url"
 	done
-
-	counter=1
-	for file in "${!multiple_download_dict[@]}";do
-		url="${multiple_download_dict[$file]}"
-
-		echo -e "$blue[*] Initiating download for stream $counter $norm"
-		yt-dlp -f best "$url" -o $MULTI_DIR/ytvideo.webm 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log
-		
-		if [[ $? -eq 0 ]];then
 	
-			echo -e "$green[✓] Stream $counter downloaded $norm"
-			echo -e "$blue[*] Converting stream $counter $norm"
-			ffmpeg -i "$MULTI_DIR/ytvideo.webm" "$MULTI_DIR/$file" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
+	multi_dnc
+fi
 
-			if [[ $? -eq 0  ]];then
-				echo -e "$green[✓] Stream $counter saved to filesystem$norm \n"
-				rm $MULTI_DIR/ytvideo.*
-			else
-				echo -e "$red[!] An error occured $norm"
-				echo -e "$red[!] Error saved at $ERROR_LOG"
-				continue
-			fi
+if [[ $multiple_switch_counter == "n" ]];then
+	declare -A multiple_download_dict
+	declare url=""
 
-		else
-			echo -e "$red[!] Stream $counter not downloaded $norm"
-			echo -e "$red[!] Error saved at $ERROR_LOG $norm \n"
-			continue
-		fi
-		counter=$(($counter+1))	
+	while true;do
+		read -p "Enter the URL(type 'done' when you are done): " url
+		if [[ "$url" == "done" ]];then break; fi
+		read -p "Enter the name to save it as: " save_file
+		multiple_download_dict["$save_file"]="$url"
 	done
 
+	multi_dnc
 fi

@@ -1,6 +1,6 @@
-# Maintainer: Saffron <qwertysaffron@protonmail.com>
+#Maintainer: Saffron <just.saffron@protonmail.com>
 pkgname=m2m
-pkgver=1.0
+pkgver=2.0
 pkgrel=1
 pkgdesc="A is a minimal command line based youtube to audio/any-media-type converter"
 arch=(any)
