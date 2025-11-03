@@ -74,7 +74,7 @@ Enter the URL(type 'done' when you are done): done
 - You can convert to any media format supported by `ffmpeg` just don't forget to put the extension after the file name.
 - I have used `-f best` option for `yt-dlp` to fetch the highest quality stream available, however if you want to optimize `m2m` for less data usage, you can change that to any other stream you like.
 
-##Support
+## Support
 
 m2m was built mostly because I wanted it to exist.  
 If it helps you too, and you’d like to buy me a coffee (no pressure at all), you can tip a few sats here:
