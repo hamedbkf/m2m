@@ -79,7 +79,7 @@ Enter the URL(type 'done' when you are done): done
 m2m was built mostly because I wanted it to exist.  
 If it helps you too, and you’d like to buy me a coffee (no pressure at all), you can tip a few sats here:
 
-**BTC (Lightning / On-chain):** 
+**BTC (On-chain):** 
 `bc1qsjjgj3yqvhe5dw0xlxqzch4zlqnlwqctchlztf`
 
 Every bit goes straight into caffeine and maintaining open-source code.
