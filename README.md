@@ -69,6 +69,7 @@ Enter the URL(type 'done' when you are done): done
 
 ## Notes
 - By default, downloads are saved in `$HOME/Music/ytdownloads` for single downloads,and `$HOME/Music/ytdownloads/multi_mode` for batch downloads.
+- You can add the `--cwd` flag at the end of the command to have **m2m** save the file(s) in your current working directory.
 - You can change both `$YTDIR` and `$MULTI_DIR` as per your convenience.
 - You can convert to any media format supported by `ffmpeg` just don't forget to put the extension after the file name.
 - I have used `-f best` option for `yt-dlp` to fetch the highest quality stream available, however if you want to optimize `m2m` for less data usage, you can change that to any other stream you like.
