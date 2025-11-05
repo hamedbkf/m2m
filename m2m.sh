@@ -20,13 +20,21 @@ file_name=$2
 multiple_switch=false
 cwd_switch=false
 
-case $1 in
-	-m)	multiple_switch=true;multiple_switch_counter=$2;;
-esac
+for ((i=1; i<=$#; i++)); do
+	arg="${!i}"
+	case $arg in
+		-m)
+			multiple_switch=true; 
+			next=$((i+1));
+			multiple_switch_counter=${!next}
+			;;
 
-case $3 in 
-	--cwd) cwd_switch=true ; cwd_dir=$(pwd) ;;
-esac
+	     --cwd)	
+		     cwd_switch=true; 
+		     cwd_dir=$(pwd)
+		     ;;
+	esac
+done
 
 if [[ true ]]; then
 	if [[ $multiple_switch == false && $# -lt 2 ]];then
@@ -47,7 +55,7 @@ multi_dnc(){
 		url="${multiple_download_dict[$file]}"
 
 		echo -e "$blue[*] Initiating download for stream $counter $norm"
-		if [[ $file == "*wav*" ]] || [[ $file == "*mp3*" ]];then
+		if [[ $file == *"wav"* ]] || [[ $file == *"mp3"* ]];then
 			yt-dlp -f bestaudio $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log
 		else
 			yt-dlp -f best $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log
@@ -106,7 +114,7 @@ if [[ $multiple_switch != true ]];then
 		if [[ $cwd_switch == true ]];then
 			file_save_location=$cwd_dir
 		else
-			echo -e "These are the directories in $dest_dir \n$(ls $dest_dir)\nWhere do you want to save this one?"
+			echo -e "These are the directories in\ $dest_dir \n$(ls $dest_dir)\nWhere do you want to save this one?"
 			read -p ">> " file_save_location
 			file_save_location="$dest_dir/$file_save_location"
 		fi
@@ -128,7 +136,7 @@ if [[ $multiple_switch != true ]];then
 
 	if [[ $? -eq 0  ]];then
 		rm "$dest_dir"/ytvideo.web*
-		echo -e "$green[*] Streams Saved to filesystem at $YTDIR !! $norm" 
+		echo -e "$green[*] Streams Saved to filesystem at $file_save_location !! $norm" 
 	else
 		echo -e "$red[!] An error occured $norm"
 		echo -e "$red[!] Error saved at $ERROR_LOG $norm"
