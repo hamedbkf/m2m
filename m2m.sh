@@ -92,8 +92,11 @@ if [[ $multiple_switch != true ]];then
 	fi
 	echo -e  "$blue[*] Downloading stream from youtube $norm"
 
-	yt-dlp -f best $LINK -o "$dest_dir/ytvideo.webm" 1> /dev/null 2>$ERROR_LOG/$DATE-yt-dlp.log
-
+	if [[ $file_name == *"wav"* ]] || [[ $file_name == *"mp3"*  ]];then
+		yt-dlp -f bestaudio $LINK -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>"$ERROR_LOG/$DATE-yt-dlp.log"
+	else
+		yt-dlp -f best $LINK -o "$dest_dir/ytvideo.webm" 1> /dev/null 2>$ERROR_LOG/$DATE-yt-dlp.log
+	fi
 	#Block telling the user whether the stream was downloaded or not
 
 	if [[ $? -eq 0 ]];then
@@ -114,7 +117,12 @@ if [[ $multiple_switch != true ]];then
 	fi
 	
 	echo -e "$blue[*] Converting the stream...$norm"
-	ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
+	
+	if [[ "$file_name" == *"wav"* ]] || [[ $file_name == *"mp3"* ]];then
+		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
+	else
+		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
+	fi
 
 	#Block telling the user the final action and removing the ghost file.
 
