@@ -13,7 +13,7 @@ VERSION="2.3.2-1"
 
 YTDIR="$HOME/Music/ytdownloads"
 MULTI_DIR="$YTDIR/multi_mode"
-ERROR_LOG="$HOME/.local/m2m_error_log"
+ERROR_LOG="$HOME/.local/share/m2m_error_log"
 mkdir -p "$YTDIR"
 mkdir -p "$MULTI_DIR"
 mkdir -p "$ERROR_LOG"
