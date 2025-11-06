@@ -8,17 +8,17 @@ blue="\033[1;34m"
 
 #Making arrangements before executing the script
 
-mkdir -p "$HOME/Music/ytdownloads"
-mkdir -p "$HOME/Music/ytdownloads/multi_mode"
-mkdir -p "$HOME/.local/m2m_error_log"
 YTDIR="$HOME/Music/ytdownloads"
 MULTI_DIR="$YTDIR/multi_mode"
 ERROR_LOG="$HOME/.local/m2m_error_log"
+mkdir -p "$YTDIR"
+mkdir -p "$MULTI_DIR"
+mkdir -p "$ERROR_LOG"
 DATE=$(date +'%a_%b_%d_%H_%M_%S')
 LINK=$1
 file_name=$2
 multiple_switch=false
-cwd_switch=false
+ouput_dir_switch=false
 
 for ((i=1; i<=$#; i++)); do
 	arg="${!i}"
@@ -29,21 +29,27 @@ for ((i=1; i<=$#; i++)); do
 			multiple_switch_counter=${!next}
 			;;
 
-	     --cwd)	
-		     cwd_switch=true; 
-		     cwd_dir=$(pwd)
-		     ;;
+        -o)
+            if [ $i -eq $# ]; then
+                echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
+                exit 1;
+            fi
+            output_dir_switch=true;
+            dir_arg=$(($i+1))
+            output_dir="${!dir_arg}"
+            ;;
 	esac
 done
 
+
 if [[ true ]]; then
 	if [[ $multiple_switch == false && $# -lt 2 ]];then
-		echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [--cwd]$norm"
+		echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
 		exit 1
 	elif [[ $multiple_switch == true && $# -lt 2 ]];then
-		echo -e "$red[!] Usage: m2m -m <download_count> [--cwd]$norm"
+		echo -e "$red[!] Usage: m2m -m <download_count> [-o <output_directory>]$norm"
 		echo "For infinite downloads"
-		echo -e "$red[!] Usage: m2m -m n [--cwd]$norm"
+		echo -e "$red[!] Usage: m2m -m n [-o <output_directory>]$norm"
 		exit 1
 	fi
 fi
@@ -93,8 +99,8 @@ multi_dnc(){
 
 if [[ $multiple_switch != true ]];then
 
-	if [[ $cwd_switch == true ]];then
-		dest_dir=$cwd_dir
+	if [[ $output_dir_switch == true ]];then
+		dest_dir=$output_dir
 	else
 		dest_dir=$YTDIR
 	fi
@@ -111,10 +117,10 @@ if [[ $multiple_switch != true ]];then
 	
 		echo -e "$blue[*] Stream downloaded $norm"
 		
-		if [[ $cwd_switch == true ]];then
-			file_save_location=$cwd_dir
+		if [[ $output_dir_switch == true ]];then
+			file_save_location=$output_dir
 		else
-			echo -e "These are the directories in\ $dest_dir \n$(ls $dest_dir)\nWhere do you want to save this one?"
+			echo -e "These are the directories in $dest_dir \n$(ls $dest_dir)\nWhere do you want to save this one?"
 			read -p ">> " file_save_location
 			file_save_location="$dest_dir/$file_save_location"
 		fi
@@ -153,11 +159,11 @@ if [[ $multiple_switch == true && $multiple_switch_counter != "n" ]];then
 	read -p "Enter the name to save it as: " save_file
 	multiple_download_dict["$save_file"]="$url"
 	done
-	
-	if [[ $cwd_switch != true ]];then
+
+    if [[ $output_dir_switch != true ]];then
 		multi_dnc "$MULTI_DIR"
 	else
-		multi_dnc "$cwd_dir"
+		multi_dnc "$output_dir"
 	fi
 fi
 
@@ -172,10 +178,9 @@ if [[ $multiple_switch_counter == "n" ]];then
 		multiple_download_dict["$save_file"]="$url"
 	done
 
-	if [[ $cwd_switch != true ]];then
+    if [[ $output_dir_switch != true ]];then
 		multi_dnc "$MULTI_DIR"
 	else
-		multi_dnc "$cwd_dir"
+		multi_dnc "$output_dir"
 	fi
-
 fi
