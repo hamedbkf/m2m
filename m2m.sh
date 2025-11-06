@@ -37,6 +37,12 @@ for ((i=1; i<=$#; i++)); do
             output_dir_switch=true;
             dir_arg=$(($i+1))
             output_dir="${!dir_arg}"
+
+	    if [[ "$output_dir" == "-"* ]] || [[ -z "$filename" ]];then
+		    echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
+		    echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
+		    exit 1
+	    fi
             ;;
 	esac
 done
