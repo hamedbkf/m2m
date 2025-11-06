@@ -7,7 +7,7 @@ yellow="\033[1;33m"
 blue="\033[1;34m"
 
 #Script natives
-VERSION="2.3.2"
+VERSION="2.3.2-1"
 
 #Making arrangements before executing the script
 
@@ -66,6 +66,11 @@ multi_dnc(){
 
 }
 
+show_version(){
+	echo -e "$blue[*] m2m: Version: $VERSION $norm"
+	exit 0
+}
+
 show_help(){
 	echo -e "
  __  __ ____  __  __ 		
@@ -77,7 +82,7 @@ show_help(){
 Usage: For single downloads
 m2m <url> <filename.ext> [-o <output_directory>]
 
-For mutliple downloads: (put number of downloads as 'n' for infinite downloads)
+For multiple downloads: (put number of downloads as 'n' for infinite downloads)
 m2m -m <number_of_files_to_download> [-o <output_direcotory>]
 
 Flags:
@@ -120,7 +125,12 @@ for ((i=1; i<=$#; i++)); do
 			LINK="$arg"
 	    		;;
 
-    		-h|--help|-?)
+		-v|--version|-V)
+	    		show_version
+	    		return 0
+	    		;;
+
+		-h|--help|-?)
 	    		
 			show_help
 	    		exit 0
