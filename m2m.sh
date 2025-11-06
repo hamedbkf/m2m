@@ -42,9 +42,9 @@ multi_dnc(){
 			echo -e "$blue[*] Converting stream $counter $norm"
 			
 			if [[ $file == *"wav"* ]] || [[ $file == *"mp3"* ]];then
-				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$file" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
+				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
 			else
-				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$file" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
+				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
 			fi
 
 			if [[ $? -eq 0  ]];then
@@ -203,9 +203,9 @@ if [[ $multiple_switch != true ]];then
 	echo -e "$blue[*] Converting the stream...$norm"
 	
 	if [[ "$file_name" == *"wav"* ]] || [[ $file_name == *"mp3"* ]];then
-		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
+		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" -y 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
 	else
-		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
+		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
 	fi
 
 	#Block telling the user the final action and removing the ghost file.
