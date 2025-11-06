@@ -20,46 +20,6 @@ file_name=$2
 multiple_switch=false
 ouput_dir_switch=false
 
-for ((i=1; i<=$#; i++)); do
-	arg="${!i}"
-	case $arg in
-		-m)
-			multiple_switch=true; 
-			next=$((i+1));
-			multiple_switch_counter=${!next}
-			;;
-
-        -o)
-            if [ $i -eq $# ]; then
-                echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
-                exit 1;
-            fi
-            output_dir_switch=true;
-            dir_arg=$(($i+1))
-            output_dir="${!dir_arg}"
-
-	    if [[ "$output_dir" == "-"* ]] || [[ -z "$filename" ]];then
-		    echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
-		    echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
-		    exit 1
-	    fi
-            ;;
-	esac
-done
-
-
-if [[ true ]]; then
-	if [[ $multiple_switch == false && $# -lt 2 ]];then
-		echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
-		exit 1
-	elif [[ $multiple_switch == true && $# -lt 2 ]];then
-		echo -e "$red[!] Usage: m2m -m <download_count> [-o <output_directory>]$norm"
-		echo "For infinite downloads"
-		echo -e "$red[!] Usage: m2m -m n [-o <output_directory>]$norm"
-		exit 1
-	fi
-fi
-
 multi_dnc(){
 	dest_dir=$1
 	counter=1
@@ -102,6 +62,60 @@ multi_dnc(){
 	done
 
 }
+
+show_help(){
+	echo -e " line 1
+		line 2
+		line 3
+		line 4
+	"
+}
+main(){
+for ((i=1; i<=$#; i++)); do
+	arg="${!i}"
+	case $arg in
+		-m)
+			multiple_switch=true; 
+			next=$((i+1));
+			multiple_switch_counter=${!next}
+			;;
+
+        -o|--output)
+            if [ $i -eq $# ]; then
+                echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
+                exit 1;
+            fi
+            output_dir_switch=true;
+            dir_arg=$(($i+1))
+            output_dir="${!dir_arg}"
+
+	    if [[ "$output_dir" == "-"* ]] || [[ -z "$filename" && $multiple_switch == false ]];then
+		    echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
+		    echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
+		    exit 1
+	    fi
+            ;;
+
+    -h|--help|-?)
+	    show_help
+	    exit 0
+	esac
+done
+
+
+if [[ true ]]; then
+	if [[ $multiple_switch == false && $# -lt 2 ]];then
+		echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
+		exit 1
+	elif [[ $multiple_switch == true && $# -lt 2 ]];then
+		echo -e "$red[!] Usage: m2m -m <download_count> [-o <output_directory>]$norm"
+		echo "For infinite downloads"
+		echo -e "$red[!] Usage: m2m -m n [-o <output_directory>]$norm"
+		exit 1
+	fi
+fi
+
+
 
 if [[ $multiple_switch != true ]];then
 
@@ -190,3 +204,7 @@ if [[ $multiple_switch_counter == "n" ]];then
 		multi_dnc "$output_dir"
 	fi
 fi
+}
+
+
+main "$@"
