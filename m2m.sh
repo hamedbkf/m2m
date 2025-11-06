@@ -6,6 +6,9 @@ green="\033[1;32m"
 yellow="\033[1;33m"
 blue="\033[1;34m"
 
+#Script natives
+VERSION="2.3.1-1"
+
 #Making arrangements before executing the script
 
 YTDIR="$HOME/Music/ytdownloads"
@@ -15,8 +18,8 @@ mkdir -p "$YTDIR"
 mkdir -p "$MULTI_DIR"
 mkdir -p "$ERROR_LOG"
 DATE=$(date +'%a_%b_%d_%H_%M_%S')
-LINK=$1
-file_name=$2
+LINK=""
+file_name="placeholder"
 multiple_switch=false
 ouput_dir_switch=false
 
@@ -64,41 +67,67 @@ multi_dnc(){
 }
 
 show_help(){
-	echo -e " line 1
-		line 2
-		line 3
-		line 4
+	echo -e "
+ __  __ ____  __  __ 		
+|  \/  |___ \|  \/  |	
+| |\/| | __) | |\/| |	m2m v"$VERSION"
+| |  | |/ __/| |  | |	
+|_|  |_|_____|_|  |_|           
+
+Usage: For single downloads
+m2m <url> <filename.ext> [-o <output_directory>]
+
+For mutliple downloads: (put number of downloads as 'n' for infinite downloads)
+m2m -m <number_of_files_to_download> [-o <output_direcotory>]
+
+Flags:
+	-h|--help|-? 		Show this help message
+	-m|--multi-download	Use multi download mode (described above)
+	-o|--output		Use the provided output directory rather than the default one
 	"
 }
+
 main(){
 for ((i=1; i<=$#; i++)); do
 	arg="${!i}"
 	case $arg in
-		-m)
+		-m|--multi-download)
+			
 			multiple_switch=true; 
 			next=$((i+1));
 			multiple_switch_counter=${!next}
+			i=$next       # <-- skips 'n' from the argument check
 			;;
 
-        -o|--output)
-            if [ $i -eq $# ]; then
-                echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
-                exit 1;
-            fi
-            output_dir_switch=true;
-            dir_arg=$(($i+1))
-            output_dir="${!dir_arg}"
+        	-o|--output)
 
-	    if [[ "$output_dir" == "-"* ]] || [[ -z "$filename" && $multiple_switch == false ]];then
-		    echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
-		    echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
-		    exit 1
-	    fi
-            ;;
+            		if [ $i -eq $# ]; then
+                		echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
+                		exit 1;
+            		fi
+            		output_dir_switch=true;
+            		dir_arg=$(($i+1))
+            		output_dir="${!dir_arg}"
 
-    -h|--help|-?)
-	    show_help
-	    exit 0
+	    		if [[ "$output_dir" == "-"* ]] || [[ -z "$file_name" && $multiple_switch == false ]];then
+		    		echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
+		    		echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
+		    		exit 1
+	    		fi
+            		;;
+
+    		http*://*)	
+			LINK="$arg"
+	    		;;
+
+    		-h|--help|-?)
+	    		
+			show_help
+	    		exit 0
+	    		;;
+
+    		*)  #Would assign the non flag value to $file_name
+			file_name="$arg"
 	esac
 done
 
