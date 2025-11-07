@@ -13,6 +13,7 @@ A minimal bash tool to convert YouTube video files to any other supported media 
 ## Dependencies
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 - [ffmpeg](https://ffmpeg.org/)
+- [jq](https://github.com/jqlang/jq)
 
 ## Usage:
 ### For single downloads:
@@ -46,6 +47,32 @@ Enter the name to save it as: song_two.mkv
 
 ... #And so on
 ```
+### For downloading Playlists from youtube
+```bash
+[usernorm@xarch ~]$ m2m -pl 'https://youtube.com/playlist?list=PLb9fYCYT16Y62EXx79LCfXc1jDxdsR9jf&si=hU-KoFIK4O6ob8pq'
+[*] Aquiring playlist data from YouTube
+[*] Playlist data aquired, choose an extension (default: wav) 
+>>wav           # <--- You can choose any media format supported by ffmpeg
+[*] Downloading stream 1 (Issam_Alnajjar__Hadal_Ahbek_Performance_Video)
+[✓] Stream 1 downloaded 
+[*] Converting stream 1 
+[✓] Stream 1 saved to filesystem 
+
+[*] Downloading stream 2 (Clandestina__Emma_Peters_lyrical_video_lyricalvideo_song_trending_music_shortsmusic)
+[✓] Stream 2 downloaded 
+[*] Converting stream 2 
+[✓] Stream 2 saved to filesystem 
+
+[*] Downloading stream 3 (Luis_Fonsi__Despacito_ft_Daddy_Yankee)
+[✓] Stream 3 downloaded 
+[*] Converting stream 3 
+[✓] Stream 3 saved to filesystem 
+
+[*] Downloading stream 4 (Gabry_Ponte_KEL__Tarantella)
+[✓] Stream 4 downloaded 
+[*] Converting stream 4 
+[✓] Stream 4 saved to filesystem 
+```
 
 ### Infinite batch downloads:
 ```bash
@@ -71,6 +98,7 @@ Enter the URL(type 'done' when you are done): done
 - By default, downloads are saved in `$HOME/Music/ytdownloads` for single downloads,and `$HOME/Music/ytdownloads/multi_mode` for batch downloads.
 - Also the error logs are saved in `$HOME/.local/share` by default, i'd personally suggest you keep it like that, but if you know what you are doing changing it would not have much effect.
 - You can add the `-o` flag followed by any _path_  to have **m2m** save the file(s) there.
+- The playlist flags `-pl|--playlist|-PL` create a directory in the current working directory by the name of the title of the playlist and all the files are saved in it.
 - You can change both `$YTDIR` and `$MULTI_DIR` as per your convenience.
 - You can convert to any media format supported by `ffmpeg` just don't forget to put the extension after the file name.
 - I have used `-f best` option for `yt-dlp` to fetch the highest quality stream available, however if you want to optimize `m2m` for less data usage, you can change that to any other stream you like.
