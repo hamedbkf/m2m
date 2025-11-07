@@ -13,7 +13,7 @@ VERSION="2.3.2-1"
 
 YTDIR="$HOME/Music/ytdownloads"
 MULTI_DIR="$YTDIR/multi_mode"
-ERROR_LOG="$HOME/.local/m2m_error_log"
+ERROR_LOG="$HOME/.local/share/m2m_error_log"
 mkdir -p "$YTDIR"
 mkdir -p "$MULTI_DIR"
 mkdir -p "$ERROR_LOG"
@@ -42,9 +42,9 @@ multi_dnc(){
 			echo -e "$blue[*] Converting stream $counter $norm"
 			
 			if [[ $file == *"wav"* ]] || [[ $file == *"mp3"* ]];then
-				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$file" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
+				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
 			else
-				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$file" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
+				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
 			fi
 
 			if [[ $? -eq 0  ]];then
@@ -97,47 +97,58 @@ for ((i=1; i<=$#; i++)); do
 	arg="${!i}"
 	case $arg in
 		-m|--multi-download)
-			
 			multiple_switch=true; 
 			next=$((i+1));
 			multiple_switch_counter=${!next}
 			i=$next       # <-- skips 'n' from the argument check
 			;;
 
-        	-o|--output)
+        -o|--output)
+            if [ $i -eq $# ]; then      #Check if there is no more arguments
+                echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
+                exit 1;
+            fi
+            output_dir_switch=true;
+            dir_arg=$(($i+1))
+            output_dir="${!dir_arg}"
 
-            		if [ $i -eq $# ]; then
-                		echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
-                		exit 1;
-            		fi
-            		output_dir_switch=true;
-            		dir_arg=$(($i+1))
-            		output_dir="${!dir_arg}"
+            if [[ "$output_dir" == "-"* ]];then     #Check if directory starts with "-"
+                echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
+                echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
+                exit 1
+            elif [[ ! -d "$output_dir" ]]; then      #Check if directory does not exist
+                echo -e "$yellow[!] m2m: Error: Output directory ($red$output_dir$yellow) does not exist! $norm"
+                exit 1
 
-	    		if [[ "$output_dir" == "-"* ]] || [[ -z "$file_name" && $multiple_switch == false ]];then
-		    		echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
-		    		echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
-		    		exit 1
-	    		fi
-            		;;
+            fi
+            ;;
 
-    		http*://*)	
+        http*://*)
+            if [ $i -eq $# ]; then
+                echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
+                exit 1;
+            fi
+
 			LINK="$arg"
-	    		;;
+            file_arg=$(($i+1))
+            file_name="${!file_arg}"
 
-		-v|--version|-V)
-	    		show_version
-	    		return 0
-	    		;;
+            if [[ "$file_name" == "-"* ]];then     #Check if file_name starts with "-"
+                echo -e "$yellow[!] m2m: Error: Missing missing file name variable after $redlink$yellow (got $file_name)$norm"
+                echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
+                exit 1
+            fi
+            ;;
+
+        -v|--version|-V)
+            show_version
+            return 0
+            ;;
 
 		-h|--help|-?)
-	    		
 			show_help
-	    		exit 0
-	    		;;
-
-    		*)  #Would assign the non flag value to $file_name
-			file_name="$arg"
+            exit 0
+            ;;
 	esac
 done
 
@@ -192,9 +203,9 @@ if [[ $multiple_switch != true ]];then
 	echo -e "$blue[*] Converting the stream...$norm"
 	
 	if [[ "$file_name" == *"wav"* ]] || [[ $file_name == *"mp3"* ]];then
-		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
+		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" -y 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
 	else
-		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
+		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
 	fi
 
 	#Block telling the user the final action and removing the ghost file.
