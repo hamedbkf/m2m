@@ -70,6 +70,10 @@ multi_dnc(){
 
 download_pl(){
 	pl_url="$1"
+	if [[ "$pl_url" != *"list="* ]];then
+		echo -e "$red[!] m2m: Error: Invalid playlist link$norm"
+		exit 1
+	fi
 	echo -e "$blue[*] Aquiring playlist data from YouTube$norm"
 	json=$(yt-dlp --flat-playlist -J "$pl_url")
 	dest_dir=$(echo "$json" | jq -r '.title' | tr -cd '[:alnum:] ' |tr ' ' '_')
