@@ -7,7 +7,7 @@ yellow="\033[1;33m"
 blue="\033[1;34m"
 
 #Script natives
-VERSION="2.3.4-1"
+VERSION="2.3.5-1"
 
 #Making arrangements before executing the script
 
@@ -27,11 +27,11 @@ output_dir_switch=false
 
 multi_dnc(){
 	dest_dir=$1
-	counter=1
+	#counter=1
 	for file in "${!multiple_download_dict[@]}";do
 		url="${multiple_download_dict[$file]}"
-
-		echo -e "$blue[*] Initiating download for stream $counter $norm"
+		counter=$(yt-dlp -J "$url" 2>/dev/null | jq -r '.title' | tr -cd '[:alnum:] ' | tr ' ' '_')
+		echo -e "$blue[*] Initiating download for stream $yellow $counter $norm"
 		if [[ $file == *"wav"* ]] || [[ $file == *"mp3"* ]];then
 			yt-dlp -f bestaudio $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log
 		else
@@ -40,8 +40,8 @@ multi_dnc(){
 		
 		if [[ $? -eq 0 ]];then
 	
-			echo -e "$green[✓] Stream $counter downloaded $norm"
-			echo -e "$blue[*] Converting stream $counter $norm"
+			echo -e "$green[✓] Stream downloaded $norm"
+			echo -e "$blue[*] Converting$yellow $counter$blue to $yellow$file $norm"
 			
 			if [[ $file == *"wav"* ]] || [[ $file == *"mp3"* ]];then
 				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
@@ -50,7 +50,7 @@ multi_dnc(){
 			fi
 
 			if [[ $? -eq 0  ]];then
-				echo -e "$green[✓] Stream $counter saved to filesystem$norm \n"
+				echo -e "$green[✓] Stream $file saved to filesystem$norm \n"
 				rm "$dest_dir"/ytvideo.*
 			else
 				echo -e "$red[!] An error occured $norm"
@@ -63,7 +63,7 @@ multi_dnc(){
 			echo -e "$red[!] Error saved at $ERROR_LOG $norm \n"
 			continue
 		fi
-		counter=$(($counter+1))	
+		#counter=$(($counter+1))	
 	done
 
 }
@@ -263,7 +263,8 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 	else
 		dest_dir=$YTDIR
 	fi
-	echo -e  "$blue[*] Downloading stream from youtube $norm"
+	title=$(yt-dlp -J "$LINK" 2>/dev/null | jq '.title' | tr -cd '[:alnum:] ' | tr ' ' '_')
+	echo -e  "$blue[*] Downloading stream $yellow$title$norm"
 
 	if [[ $file_name == *"wav"* ]] || [[ $file_name == *"mp3"*  ]];then
 		yt-dlp -f bestaudio $LINK -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>"$ERROR_LOG/$DATE-yt-dlp.log"
@@ -289,7 +290,7 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 		exit 1
 	fi
 	
-	echo -e "$blue[*] Converting the stream...$norm"
+	echo -e "$blue[*] Converting stream $yellow$title$blue to $yellow$file_name$norm"
 	
 	if [[ "$file_name" == *"wav"* ]] || [[ $file_name == *"mp3"* ]];then
 		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" -y 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
