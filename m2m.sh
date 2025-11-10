@@ -26,29 +26,49 @@ playlist_switch=false
 multiple_switch=false
 output_dir_switch=false
 
+#Processing spinner/indicator
+spinner(){
+    color=$1            #Color applied before spinner
+    step_output=$2      #Step/Operation text
+    pid=$!              #PID of most recent process (now in background)
+    spin="/-\\|/-\\|";
+    spinner_len=${#spin}
+
+    while kill -0 $pid 2>/dev/null  #While the process PID still exists
+    do
+        i=$(( (i+1) % $spinner_len ))
+        echo -ne "\r$color[${spin:i:1}] $step_output"
+        sleep .3
+    done
+
+    #Step done
+    echo -ne "\r$color[*] $step_output"
+    echo -e
+}
+
 multi_dnc(){
 	dest_dir=$1
 	#counter=1
 	for file in "${!multiple_download_dict[@]}";do
 		url="${multiple_download_dict[$file]}"
 		counter=$(yt-dlp -J "$url" 2>/dev/null | jq -r '.title' | tr -cd '[:alnum:] ' | tr ' ' '_')
-		echo -e "$blue[*] Initiating download for stream $yellow $counter $norm"
 		if [[ $file == *"wav"* ]] || [[ $file == *"mp3"* ]];then
-			yt-dlp -f bestaudio $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log
+			yt-dlp -f bestaudio $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log &
 		else
-			yt-dlp -f best $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log
+			yt-dlp -f best $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log &
 		fi
+		spinner "$blue" "Initiating download for stream $yellow $counter $norm"
 		
 		if [[ $? -eq 0 ]];then
 	
 			echo -e "$green[✓] Stream downloaded $norm"
-			echo -e "$blue[*] Converting$yellow $counter$blue to $yellow$file $norm"
 			
 			if [[ $file == *"wav"* ]] || [[ $file == *"mp3"* ]];then
-				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
+				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log" &
 			else
-				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log"
+				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log" &
 			fi
+			spinner "$blue" "Converting$yellow $counter$blue to $yellow$file $norm"
 
 			if [[ $? -eq 0  ]];then
 				echo -e "$green[✓] Stream $file saved to filesystem$norm \n"
@@ -109,23 +129,23 @@ download_pl(){
 	for name in ${!playlist_data[@]};do
 		url=${playlist_data[$name]}
 
-		echo -e "$blue[*] Downloading stream $counter ($name)"
 		if [[ $filetype == *"wav"* ]] || [[ $filetype == *"mp3"* ]];then
-			yt-dlp -f bestaudio $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-playlist-download.log
+			yt-dlp -f bestaudio $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-playlist-download.log &
 		else
-			yt-dlp -f best $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-playlist-download.log
+			yt-dlp -f best $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-playlist-download.log &
 		fi
+		spinner "$blue" "Downloading stream $counter ($name)"
 
 		if [[ $? -eq 0 ]];then
 	
 			echo -e "$green[✓] Stream $counter downloaded $norm"
-			echo -e "$blue[*] Converting stream $counter $norm"
 			
 			if [[ $filetype == *"wav"* ]] || [[ $filetype == *"mp3"* ]];then
-				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$name.$filetype" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-playlist-download.log"
+				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$name.$filetype" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-playlist-download.log" &
 			else
-				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$name.$filetype" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-playlist-download.log"
+				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$name.$filetype" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-playlist-download.log" &
 			fi
+            spinner "$blue" "Converting stream $counter $norm"
 
 			if [[ $? -eq 0  ]];then
 				echo -e "$green[✓] Stream $counter saved to filesystem$norm \n"
@@ -277,17 +297,16 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 		dest_dir=$YTDIR
 	fi
 	title=$(yt-dlp -J "$LINK" 2>/dev/null | jq '.title' | tr -cd '[:alnum:] ' | tr ' ' '_')
-	echo -e  "$blue[*] Downloading stream $yellow$title$norm"
 
 	if [[ $file_name == *"wav"* ]] || [[ $file_name == *"mp3"*  ]];then
-		yt-dlp -f bestaudio $LINK -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>"$ERROR_LOG/$DATE-yt-dlp.log"
+		yt-dlp -f bestaudio $LINK -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>"$ERROR_LOG/$DATE-yt-dlp.log" &
 	else
-		yt-dlp -f best $LINK -o "$dest_dir/ytvideo.webm" 1> /dev/null 2>$ERROR_LOG/$DATE-yt-dlp.log
+		yt-dlp -f best $LINK -o "$dest_dir/ytvideo.webm" 1> /dev/null 2>$ERROR_LOG/$DATE-yt-dlp.log &
 	fi
-	#Block telling the user whether the stream was downloaded or not
+	spinner "$blue" "Downloading stream $yellow$title$norm"
 
+	#Block telling the user whether the stream was downloaded or not
 	if [[ $? -eq 0 ]];then
-	
 		echo -e "$blue[*] Stream downloaded $norm"
 		
 		if [[ $output_dir_switch == true ]];then
@@ -303,16 +322,14 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 		exit 1
 	fi
 	
-	echo -e "$blue[*] Converting stream $yellow$title$blue to $yellow$file_name$norm"
-	
 	if [[ "$file_name" == *"wav"* ]] || [[ $file_name == *"mp3"* ]];then
-		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" -y 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
+		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" -y 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log" &
 	else
-		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log"
+		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log" &
 	fi
+	spinner "$blue" "Converting stream $yellow$title$blue to $yellow$file_name$norm"
 
 	#Block telling the user the final action and removing the ghost file.
-
 	if [[ $? -eq 0  ]];then
 		rm "$dest_dir"/ytvideo.web*
 		echo -e "$green[*] Streams Saved to filesystem at $file_save_location !! $norm" 
