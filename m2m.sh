@@ -288,13 +288,13 @@ for arg in "$@";do
 	esac
 done
 
-while getopts ":m:o:p:vh" arg;do
+while getopts ":m:d:p:vh" arg;do
 	case $arg in
 		m)
 			multiple_switch=true
 			multiple_switch_counter="$OPTARG"
 			;;
-		o)
+		d)
 			opt_dest_dir_switch=true
 			opt_dest_dir="$OPTARG"
 			if [[ ! -d "$opt_dest_dir" ]]; then
