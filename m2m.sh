@@ -7,7 +7,7 @@ yellow="\033[1;33m"
 blue="\033[1;34m"
 
 #Script natives
-VERSION="2.3.7-2"
+VERSION="2.3.8-1"
 
 #Making arrangements before executing the script
 
@@ -52,12 +52,13 @@ multi_dnc(){
 	for file in "${!multiple_download_dict[@]}";do
 		url="${multiple_download_dict[$file]}"
 		counter=$(yt-dlp -J "$url" 2>/dev/null | jq -r '.title' | tr -cd '[:alnum:] ' | tr ' ' '_')
+		echo -e "$blue[*] Initiating downlaod for $yellow$counter$norm"
 		if [[ $file == *"wav"* ]] || [[ $file == *"mp3"* ]];then
-			yt-dlp -f bestaudio $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log &
+			yt-dlp --quiet --progress --no-warnings -f bestaudio $url -o "$dest_dir/ytvideo.webm"
 		else
-			yt-dlp -f best $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-multi-download.log &
+			yt-dlp --quiet --progress --no-warnings -f best $url -o "$dest_dir/ytvideo.webm"
 		fi
-		spinner "$blue" "Initiating download for stream $yellow $counter $norm"
+		#spinner "$blue" "Initiating download for stream $yellow $counter $norm"
 		
 		if [[ $? -eq 0 ]];then
 	
@@ -116,25 +117,25 @@ download_pl(){
 		playlist_data["$safe_title"]="$vd_url"
 	done < <(echo "$json" | jq -r '.entries[] | [.url,.title] | @tsv') 	#<--- The core of the playlist method
 
-	echo -e "$blue[*] Playlist data aquired, choose an extension (default: wav)$norm"
+	echo -e "$blue[*] Playlist data aquired, choose an extension (default: mkv)$norm"
 
 	if ! read -t "$READ_TIMEOUT" -p ">>" filetype; then
-		echo -e "$yellow[!] Extension time out, using default (wav)$norm"
-		filetype="wav"
+		echo -e "$yellow[!] Extension time out, using default (mkv)$norm"
+		filetype="mkv"
 	elif [[ $filetype == "" ]];then
-		filetype="wav"
+		filetype="mkv"
 	fi
 	
 	counter=1
 	for name in ${!playlist_data[@]};do
 		url=${playlist_data[$name]}
-
+		echo -e "$blue[*] Initiating downlaod for $yellow$name$norm"
 		if [[ $filetype == *"wav"* ]] || [[ $filetype == *"mp3"* ]];then
-			yt-dlp -f bestaudio $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-playlist-download.log &
+			yt-dlp --quiet --progress --no-warnings -f bestaudio $url -o "$dest_dir/ytvideo.webm"
 		else
-			yt-dlp -f best $url -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>$ERROR_LOG/$DATE-yt-dlp-playlist-download.log &
+			yt-dlp --quiet --progress --no-warnings -f best $url -o "$dest_dir/ytvideo.webm"
 		fi
-		spinner "$blue" "Downloading stream $counter ($name)"
+		#spinner "$blue" "Downloading stream $counter ($name)"
 
 		if [[ $? -eq 0 ]];then
 	
@@ -179,13 +180,13 @@ show_help(){
 |_|  |_|_____|_|  |_|           
 
 Usage: For single downloads
-m2m <url> <filename.ext> [-d <destination_dir>]
+m2m [-d <destination_dir>] <url> <filename.ext>
 
 For multiple downloads: (put number of downloads as 'n' for infinite downloads)
-m2m -m <number_of_files_to_download> [-d <destination_dir>]
+m2m [-d <destination_dir>] -m <number_of_files_to_download>
 
 For downloading playlists:
-m2m -pl <playlist_url>
+m2m [-d <destination_dir>] -pl <playlist_url>
 
 Flags:
 	-h|--help|-? 		Show this help message
@@ -196,86 +197,6 @@ Flags:
 }
 
 main(){
-
-# OLD OUTPUT PARSING LOGIC
-
-# for ((i=1; i<=$#; i++)); do
-# 	arg="${!i}"
-# 	case $arg in
-# 		-m|--multi-download)
-# 			multiple_switch=true;
-# 			next=$((i+1));
-# 			multiple_switch_counter=${!next}
-# 			i=$next       # <-- skips 'n' from the argument check 
-# 			;;
-#
-#         -d|--destination)
-#             if [ $i -eq $# ]; then      #Check if there is no more arguments
-#                 echo -e "$yellow[!] m2m: Error: Missing path variable for destination directory after $red-d$yellow$norm"
-#                 echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-d <destination_dir>]$norm"
-#                 exit 1;
-#             fi
-#             opt_dest_dir_switch=true;
-#             dir_arg=$(($i+1))
-#             opt_dest_dir="${!dir_arg}"
-#
-#             if [[ "$opt_dest_dir" == "-"* ]];then     #Check if directory starts with "-"
-#                 echo -e "$yellow[!] m2m: Error: Missing path variable for destination directory after $red-d$yellow (got $opt_dest_dir)$norm"
-#                 echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-d <destination_dir>] $norm"
-#                 exit 1
-#             elif [[ ! -d "$opt_dest_dir" ]]; then      #Check if directory does not exist
-#                 echo -e "$yellow[!] m2m: Error: Output directory ($red$opt_dest_dir$yellow) does not exist! $norm"
-#                 exit 1
-#
-#             fi
-#             ;;
-#
-#         http*://*)
-#             if [[ $i -eq $#  && $playlist_switch == false ]]; then
-#                 echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-d <destination_dir>]$norm"
-#                 exit 1;
-#             fi
-#
-# 			LINK="$arg"
-#             file_arg=$(($i+1))
-#             file_name="${!file_arg}"
-#
-#             if [[ "$file_name" == "-"* ]];then     #Check if file_name starts with "-"
-#                 echo -e "$yellow[!] m2m: Error: Missing missing file name variable after$red link$yellow (got $file_name)$norm"
-#                 echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-d <destination_dir>] $norm"
-#                 exit 1
-#             fi
-#             ;;
-#
-#     -pl|--playlist|-PL)
-# 	    playlist_switch=true
-# 	    next=$((i+1))
-# 	    playlist_url=${!next}
-# 	    if [[ -z "$playlist_url" ]] || [[ "$playlist_url" == "-"* ]];then
-# 		    echo -e "$yellow[!] m2m: Error: Missing playlist URL after $red$arg$norm"
-#             echo -e "$red[!] Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-d <destination_dir>]$norm"
-#             exit 1
-# 	    elif [[ "$playlist_switch" == true && $# -gt 4 ]];then
-# 		    echo -e "$yellow[!] m2m: Error: Using playlist flag cannot have more than 3 arguments,$red $(($#-1)) provided.$norm"
-# 		    echo -e "$red[!] m2m: Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-d <destination_dir>]$norm"
-# 		    exit 1
-# 	    fi
-#
-# 	    i=$((i+1))  #Skip playlist link we just got or it will break next iteration in the https link case
-#                     #TODO: Cleaner arguments parsing to avoid such cases
-# 	    ;;
-#
-#         -v|--version|-V)
-#             show_version
-#             return 0
-#             ;;
-#
-# 		-h|--help|-?)
-# 			show_help
-#             exit 0
-#             ;;
-# 	esac
-# done
 
 for arg in "$@";do
 	case $arg in
@@ -337,7 +258,7 @@ for arg in "$@";do
 done
 
 if [[ -z "$LINK" && $playlist_switch == false && $multiple_switch == false ]]; then
-    echo -e "$red[!] Usage: m2m <url> <filename.ext> [-d <destination_dir>]$norm"
+    echo -e "$red[!] Usage: m2m [-d <destination_dir>] <url> <filename.ext> $norm"
     exit 1
 fi
 
@@ -356,20 +277,22 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 		dest_dir=$YTDIR
 	fi
 	title=$(yt-dlp -J "$LINK" 2>/dev/null | jq '.title' | tr -cd '[:alnum:] ' | tr ' ' '_')
-
+	
+	echo -e "$blue[*] Initiating downlaod for $yellow$title$norm"
+	
 	if [[ $file_name == *"wav"* ]] || [[ $file_name == *"mp3"*  ]];then
-		yt-dlp -f bestaudio $LINK -o "$dest_dir/ytvideo.webm" 1> /dev/null  2>"$ERROR_LOG/$DATE-yt-dlp.log" & 
+		yt-dlp --quiet --progress --no-warnings -f bestaudio $LINK -o "$dest_dir/ytvideo.webm" 
 	else
-		yt-dlp -f best $LINK -o "$dest_dir/ytvideo.webm" 1> /dev/null 2>$ERROR_LOG/$DATE-yt-dlp.log &
+		yt-dlp --quiet --progress --no-warnings -f best $LINK -o "$dest_dir/ytvideo.webm"
 	fi
-	spinner "$blue" "Downloading stream $yellow$title$norm"
+	#spinner "$blue" "Downloading stream $yellow$title$norm"
 
 	#Block telling the user whether the stream was downloaded or not
 	if [[ $? -eq 0 ]];then
 		echo -e "$blue[*] Stream downloaded $norm"
 		
 		if [[ $opt_dest_dir_switch == true ]];then
-			file_save_location=$opt_dest_dir
+			file_save_location=$dest_dir
 		else
 			echo -e "These are the directories in $dest_dir \n$(ls $dest_dir)\nWhere do you want to save this one?"
 			read -p ">> " file_save_location
