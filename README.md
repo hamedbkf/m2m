@@ -100,7 +100,7 @@ Enter the URL(type 'done' when you are done): done
   - `$HOME/Music/ytdownloads/multi_mode` for batch downloads.
   - `$HOME/Music/ytdownloads/playlists` for playlist downloads.
 - Also the error logs are saved in `$HOME/.local/share` by default, i'd personally suggest you keep it like that, but if you know what you are doing changing it would not have much effect.
-- You can add the `-o` flag followed by any _path_  to have **m2m** save the file(s) there.
+- You can add the `-d` flag followed by any _path_  to have **m2m** save the file(s) there.
 - The playlist flags `-pl|--playlist|-PL` create a directory in the current working directory by the name of the title of the playlist and all the files are saved in it.
 - You can change both `$YTDIR` and `$MULTI_DIR` as per your convenience.
 - You can convert to any media format supported by `ffmpeg` just don't forget to put the extension after the file name.
@@ -108,7 +108,7 @@ Enter the URL(type 'done' when you are done): done
 
 
 ## Contributers
-- Big thanks to [hamed](https://github.com/hamedbkf) for adding the output directory flag `-o` and the spinner download animation while file downloading and conversion.
+- Big thanks to [hamed](https://github.com/hamedbkf) for adding the output directory flag `-d` and the spinner download animation while file downloading and conversion.
 
 ## Support
 
