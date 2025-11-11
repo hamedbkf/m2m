@@ -108,7 +108,7 @@ Enter the URL(type 'done' when you are done): done
 
 
 ## Contributers
-- Big thanks to [hamed](https://github.com/hamedbkf) for adding the output directory flag `-o` and replacing `--cwd`
+- Big thanks to [hamed](https://github.com/hamedbkf) for adding the output directory flag `-o` and the spinner download animation while file downloading and conversion.
 
 ## Support
 

@@ -7,7 +7,7 @@ yellow="\033[1;33m"
 blue="\033[1;34m"
 
 #Script natives
-VERSION="2.3.6"
+VERSION="2.3.7"
 
 #Making arrangements before executing the script
 
@@ -98,7 +98,7 @@ download_pl(){
 	fi
 
 	pl_url="$1"
-	if [[ "$pl_url" != *"list="* ]];then
+	if [[ "$pl_url" != *list=* ]];then
 		echo -e "$red[!] m2m: Error: Invalid playlist link$norm"
 		exit 1
 	fi
@@ -182,7 +182,7 @@ Usage: For single downloads
 m2m <url> <filename.ext> [-o <output_directory>]
 
 For multiple downloads: (put number of downloads as 'n' for infinite downloads)
-m2m -m <number_of_files_to_download> [-o <output_direcotory>]
+m2m -m <number_of_files_to_download> [-o <output_directory>]
 
 For downloading playlists:
 m2m -pl <playlist_url>
@@ -196,95 +196,154 @@ Flags:
 }
 
 main(){
-for ((i=1; i<=$#; i++)); do
-	arg="${!i}"
+
+# OLD OUTPUT PARSING LOGIC
+
+# for ((i=1; i<=$#; i++)); do
+# 	arg="${!i}"
+# 	case $arg in
+# 		-m|--multi-download)
+# 			multiple_switch=true;
+# 			next=$((i+1));
+# 			multiple_switch_counter=${!next}
+# 			i=$next       # <-- skips 'n' from the argument check 
+# 			;;
+#
+#         -o|--output)
+#             if [ $i -eq $# ]; then      #Check if there is no more arguments
+#                 echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow$norm"
+#                 echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_dir>]$norm"
+#                 exit 1;
+#             fi
+#             output_dir_switch=true;
+#             dir_arg=$(($i+1))
+#             output_dir="${!dir_arg}"
+#
+#             if [[ "$output_dir" == "-"* ]];then     #Check if directory starts with "-"
+#                 echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
+#                 echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_dir>] $norm"
+#                 exit 1
+#             elif [[ ! -d "$output_dir" ]]; then      #Check if directory does not exist
+#                 echo -e "$yellow[!] m2m: Error: Output directory ($red$output_dir$yellow) does not exist! $norm"
+#                 exit 1
+#
+#             fi
+#             ;;
+#
+#         http*://*)
+#             if [[ $i -eq $#  && $playlist_switch == false ]]; then
+#                 echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_dir>]$norm"
+#                 exit 1;
+#             fi
+#
+# 			LINK="$arg"
+#             file_arg=$(($i+1))
+#             file_name="${!file_arg}"
+#
+#             if [[ "$file_name" == "-"* ]];then     #Check if file_name starts with "-"
+#                 echo -e "$yellow[!] m2m: Error: Missing missing file name variable after$red link$yellow (got $file_name)$norm"
+#                 echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_dir>] $norm"
+#                 exit 1
+#             fi
+#             ;;
+#
+#     -pl|--playlist|-PL)
+# 	    playlist_switch=true
+# 	    next=$((i+1))
+# 	    playlist_url=${!next}
+# 	    if [[ -z "$playlist_url" ]] || [[ "$playlist_url" == "-"* ]];then
+# 		    echo -e "$yellow[!] m2m: Error: Missing playlist URL after $red$arg$norm"
+#             echo -e "$red[!] Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-o <output_dir>]$norm"
+#             exit 1
+# 	    elif [[ "$playlist_switch" == true && $# -gt 4 ]];then
+# 		    echo -e "$yellow[!] m2m: Error: Using playlist flag cannot have more than 3 arguments,$red $(($#-1)) provided.$norm"
+# 		    echo -e "$red[!] m2m: Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-o <output_dir>]$norm"
+# 		    exit 1
+# 	    fi
+#
+# 	    i=$((i+1))  #Skip playlist link we just got or it will break next iteration in the https link case
+#                     #TODO: Cleaner arguments parsing to avoid such cases
+# 	    ;;
+#
+#         -v|--version|-V)
+#             show_version
+#             return 0
+#             ;;
+#
+# 		-h|--help|-?)
+# 			show_help
+#             exit 0
+#             ;;
+# 	esac
+# done
+
+for arg in "$@";do
 	case $arg in
-		-m|--multi-download)
-			multiple_switch=true; 
-			next=$((i+1));
-			multiple_switch_counter=${!next}
-			i=$next       # <-- skips 'n' from the argument check
-			;;
-
-        -o|--output)
-            if [ $i -eq $# ]; then      #Check if there is no more arguments
-                echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow$norm"
-                echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
-                exit 1;
-            fi
-            output_dir_switch=true;
-            dir_arg=$(($i+1))
-            output_dir="${!dir_arg}"
-
-            if [[ "$output_dir" == "-"* ]];then     #Check if directory starts with "-"
-                echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
-                echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
-                exit 1
-            elif [[ ! -d "$output_dir" ]]; then      #Check if directory does not exist
-                echo -e "$yellow[!] m2m: Error: Output directory ($red$output_dir$yellow) does not exist! $norm"
-                exit 1
-
-            fi
-            ;;
-
-        http*://*)
-            if [[ $i -eq $#  && $playlist_switch == false ]]; then
-                echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
-                exit 1;
-            fi
-
-			LINK="$arg"
-            file_arg=$(($i+1))
-            file_name="${!file_arg}"
-
-            if [[ "$file_name" == "-"* ]];then     #Check if file_name starts with "-"
-                echo -e "$yellow[!] m2m: Error: Missing missing file name variable after$red link$yellow (got $file_name)$norm"
-                echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_directory>] $norm"
-                exit 1
-            fi
-            ;;
-
-    -pl|--playlist|-PL)
-	    playlist_switch=true
-	    next=$((i+1))
-	    playlist_url=${!next}
-	    if [[ -z "$playlist_url" ]] || [[ "$playlist_url" == "-"* ]];then
-		    echo -e "$yellow[!] m2m: Error: Missing playlist URL after $red$arg$norm"
-            echo -e "$red[!] Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-o <output_directory>]$norm"
-            exit 1
-	    elif [[ "$playlist_switch" == true && $# -gt 4 ]];then
-		    echo -e "$yellow[!] m2m: Error: Using playlist flag cannot have more than 3 arguments,$red $(($#-1)) provided.$norm"
-		    echo -e "$red[!] m2m: Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-o <output_directory>]$norm"
-		    exit 1
-	    fi
-
-	    i=$((i+1))  #Skip playlist link we just got or it will break next iteration in the https link case
-                    #TODO: Cleaner arguments parsing to avoid such cases
-	    ;;
-
-        -v|--version|-V)
-            show_version
-            return 0
-            ;;
-
-		-h|--help|-?)
-			show_help
-            exit 0
-            ;;
+		-pl)
+			set -- "${@/-pl/-p}";;
+		--playlist)
+			set -- "${@/--playlist/-p}";;
+		--output)
+			set -- "${@/--output/-o}";;
 	esac
 done
 
+while getopts ":m:o:p:vh" arg;do
+	case $arg in
+		m)
+			multiple_switch=true
+			multiple_switch_counter="$OPTARG"
+			;;
+		o)
+			output_dir_switch=true
+			output_dir="$OPTARG"
+			if [[ ! -d "$output_dir" ]]; then
+                echo -e "$yellow[!] m2m: Error: Output directory ($red$output_dir$yellow) does not exist!$norm"
+                exit 1
+            fi
+			;;
+		p)
+			playlist_switch=true
+			playlist_url="$OPTARG"
+			if [[ -z "$playlist_url" ]]; then
+                echo -e "$yellow[!] m2m: Error: Missing playlist URL after $red-p$norm"
+                exit 1
+            fi
+			;;
+		v)
+			show_version
+			exit 0
+			;;
+		h|\?)
+			show_help
+			exit 0
+			;;
+		:)
+			echo -e "$red[! m2m: Error: Missing argument for -$OPTARG$norm"
 
-if [[ true ]]; then
-	if [[ $multiple_switch == false && $# -lt 2 ]];then
-		echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_directory>]$norm"
-		exit 1
-	elif [[ $multiple_switch == true && $# -lt 2 ]];then
-		echo -e "$red[!] Usage: m2m -m <download_count> [-o <output_directory>]$norm"
-		echo "For infinite downloads"
-		echo -e "$red[!] Usage: m2m -m n [-o <output_directory>]$norm"
-		exit 1
-	fi
+	esac
+done
+
+shift $((OPTIND-1))
+
+for arg in "$@";do
+	case $arg in
+		http*://*)
+			LINK="$arg"
+			;;
+		*)
+			file_name=$arg
+	esac
+done
+
+if [[ -z "$LINK" && $playlist_switch == false && $multiple_switch == false ]]; then
+    echo -e "$red[!] Usage: m2m <url> <filename.ext> [-o <output_dir>]$norm"
+    exit 1
+fi
+
+if [[ -z "$file_name" && $playlist_switch == false && $multiple_switch == false ]]; then
+    echo -e "$yellow[!] m2m: Error: Missing filename argument after URL$norm"
+    exit 1
 fi
 
 
@@ -299,7 +358,7 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 	title=$(yt-dlp -J "$LINK" 2>/dev/null | jq '.title' | tr -cd '[:alnum:] ' | tr ' ' '_')
 
 	if [[ $file_name == *"wav"* ]] || [[ $file_name == *"mp3"*  ]];then
-		yt-dlp -f bestaudio $LINK -o "$dest_dir/ytvideo.webm" 1>/dev/null 2>"$ERROR_LOG/$DATE-yt-dlp.log" &
+		yt-dlp -f bestaudio $LINK -o "$dest_dir/ytvideo.webm" 1> /dev/null  2>"$ERROR_LOG/$DATE-yt-dlp.log" & 
 	else
 		yt-dlp -f best $LINK -o "$dest_dir/ytvideo.webm" 1> /dev/null 2>$ERROR_LOG/$DATE-yt-dlp.log &
 	fi
