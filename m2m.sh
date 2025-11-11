@@ -7,7 +7,7 @@ yellow="\033[1;33m"
 blue="\033[1;34m"
 
 #Script natives
-VERSION="2.3.7"
+VERSION="2.3.7-1"
 
 #Making arrangements before executing the script
 
@@ -24,7 +24,7 @@ LINK=""
 file_name="placeholder"
 playlist_switch=false
 multiple_switch=false
-output_dir_switch=false
+opt_dest_dir_switch=false
 
 #Processing spinner/indicator
 spinner(){
@@ -91,8 +91,8 @@ multi_dnc(){
 
 download_pl(){
 
-	if [[ $output_dir_switch == true ]];then
-		dest_dir=$output_dir
+	if [[ $opt_dest_dir_switch == true ]];then
+		dest_dir=$opt_dest_dir
 	else
 		dest_dir=$PLAYLIST_DIR
 	fi
@@ -102,7 +102,7 @@ download_pl(){
 		echo -e "$red[!] m2m: Error: Invalid playlist link$norm"
 		exit 1
 	fi
-	echo -e "$blue[*] Aquiring playlist data from YouTube$norm"
+	echo -e "$blue[*] Acquiring playlist data from YouTube$norm"
 	json=$(yt-dlp --flat-playlist -J "$pl_url")
     playlist_title="$(echo "$json" | jq -r '.title' | tr -cd '[:alnum:] ' |tr ' ' '_')"
 	dest_dir="$dest_dir/$playlist_title"
@@ -179,10 +179,10 @@ show_help(){
 |_|  |_|_____|_|  |_|           
 
 Usage: For single downloads
-m2m <url> <filename.ext> [-o <output_directory>]
+m2m <url> <filename.ext> [-d <destination_dir>]
 
 For multiple downloads: (put number of downloads as 'n' for infinite downloads)
-m2m -m <number_of_files_to_download> [-o <output_directory>]
+m2m -m <number_of_files_to_download> [-d <destination_dir>]
 
 For downloading playlists:
 m2m -pl <playlist_url>
@@ -190,7 +190,7 @@ m2m -pl <playlist_url>
 Flags:
 	-h|--help|-? 		Show this help message
 	-m|--multi-download	Use multi download mode (described above)
-	-o|--output		Use the provided output directory rather than the default one
+	-d|--destination	Use the provided destination directory rather than the default one
 	-pl|--playlist|-PL 	Download an entire playlist not just a video
 	"
 }
@@ -209,22 +209,22 @@ main(){
 # 			i=$next       # <-- skips 'n' from the argument check 
 # 			;;
 #
-#         -o|--output)
+#         -d|--destination)
 #             if [ $i -eq $# ]; then      #Check if there is no more arguments
-#                 echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow$norm"
-#                 echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_dir>]$norm"
+#                 echo -e "$yellow[!] m2m: Error: Missing path variable for destination directory after $red-d$yellow$norm"
+#                 echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-d <destination_dir>]$norm"
 #                 exit 1;
 #             fi
-#             output_dir_switch=true;
+#             opt_dest_dir_switch=true;
 #             dir_arg=$(($i+1))
-#             output_dir="${!dir_arg}"
+#             opt_dest_dir="${!dir_arg}"
 #
-#             if [[ "$output_dir" == "-"* ]];then     #Check if directory starts with "-"
-#                 echo -e "$yellow[!] m2m: Error: Missing path variable for output directory after $red-o$yellow (got $output_dir)$norm"
-#                 echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_dir>] $norm"
+#             if [[ "$opt_dest_dir" == "-"* ]];then     #Check if directory starts with "-"
+#                 echo -e "$yellow[!] m2m: Error: Missing path variable for destination directory after $red-d$yellow (got $opt_dest_dir)$norm"
+#                 echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-d <destination_dir>] $norm"
 #                 exit 1
-#             elif [[ ! -d "$output_dir" ]]; then      #Check if directory does not exist
-#                 echo -e "$yellow[!] m2m: Error: Output directory ($red$output_dir$yellow) does not exist! $norm"
+#             elif [[ ! -d "$opt_dest_dir" ]]; then      #Check if directory does not exist
+#                 echo -e "$yellow[!] m2m: Error: Output directory ($red$opt_dest_dir$yellow) does not exist! $norm"
 #                 exit 1
 #
 #             fi
@@ -232,7 +232,7 @@ main(){
 #
 #         http*://*)
 #             if [[ $i -eq $#  && $playlist_switch == false ]]; then
-#                 echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-o <output_dir>]$norm"
+#                 echo -e "$red[!] Usage:m2m <universal_resource_locater> <filename.ext> [-d <destination_dir>]$norm"
 #                 exit 1;
 #             fi
 #
@@ -242,7 +242,7 @@ main(){
 #
 #             if [[ "$file_name" == "-"* ]];then     #Check if file_name starts with "-"
 #                 echo -e "$yellow[!] m2m: Error: Missing missing file name variable after$red link$yellow (got $file_name)$norm"
-#                 echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-o <output_dir>] $norm"
+#                 echo -e "$red[!] Usage: m2m <universal_resource_locater> <filename.ext> [-d <destination_dir>] $norm"
 #                 exit 1
 #             fi
 #             ;;
@@ -253,11 +253,11 @@ main(){
 # 	    playlist_url=${!next}
 # 	    if [[ -z "$playlist_url" ]] || [[ "$playlist_url" == "-"* ]];then
 # 		    echo -e "$yellow[!] m2m: Error: Missing playlist URL after $red$arg$norm"
-#             echo -e "$red[!] Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-o <output_dir>]$norm"
+#             echo -e "$red[!] Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-d <destination_dir>]$norm"
 #             exit 1
 # 	    elif [[ "$playlist_switch" == true && $# -gt 4 ]];then
 # 		    echo -e "$yellow[!] m2m: Error: Using playlist flag cannot have more than 3 arguments,$red $(($#-1)) provided.$norm"
-# 		    echo -e "$red[!] m2m: Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-o <output_dir>]$norm"
+# 		    echo -e "$red[!] m2m: Usage: m2m -pl|--playlist|-PL <universal_resource_locater> [-d <destination_dir>]$norm"
 # 		    exit 1
 # 	    fi
 #
@@ -283,8 +283,8 @@ for arg in "$@";do
 			set -- "${@/-pl/-p}";;
 		--playlist)
 			set -- "${@/--playlist/-p}";;
-		--output)
-			set -- "${@/--output/-o}";;
+		--destination)
+			set -- "${@/--destination/-d}";;
 	esac
 done
 
@@ -295,10 +295,10 @@ while getopts ":m:o:p:vh" arg;do
 			multiple_switch_counter="$OPTARG"
 			;;
 		o)
-			output_dir_switch=true
-			output_dir="$OPTARG"
-			if [[ ! -d "$output_dir" ]]; then
-                echo -e "$yellow[!] m2m: Error: Output directory ($red$output_dir$yellow) does not exist!$norm"
+			opt_dest_dir_switch=true
+			opt_dest_dir="$OPTARG"
+			if [[ ! -d "$opt_dest_dir" ]]; then
+                echo -e "$yellow[!] m2m: Error: Output directory ($red$opt_dest_dir$yellow) does not exist!$norm"
                 exit 1
             fi
 			;;
@@ -337,7 +337,7 @@ for arg in "$@";do
 done
 
 if [[ -z "$LINK" && $playlist_switch == false && $multiple_switch == false ]]; then
-    echo -e "$red[!] Usage: m2m <url> <filename.ext> [-o <output_dir>]$norm"
+    echo -e "$red[!] Usage: m2m <url> <filename.ext> [-d <destination_dir>]$norm"
     exit 1
 fi
 
@@ -350,8 +350,8 @@ fi
 
 if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 
-	if [[ $output_dir_switch == true ]];then
-		dest_dir=$output_dir
+	if [[ $opt_dest_dir_switch == true ]];then
+		dest_dir=$opt_dest_dir
 	else
 		dest_dir=$YTDIR
 	fi
@@ -368,8 +368,8 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 	if [[ $? -eq 0 ]];then
 		echo -e "$blue[*] Stream downloaded $norm"
 		
-		if [[ $output_dir_switch == true ]];then
-			file_save_location=$output_dir
+		if [[ $opt_dest_dir_switch == true ]];then
+			file_save_location=$opt_dest_dir
 		else
 			echo -e "These are the directories in $dest_dir \n$(ls $dest_dir)\nWhere do you want to save this one?"
 			read -p ">> " file_save_location
@@ -415,10 +415,10 @@ if [[ $multiple_switch == true && $multiple_switch_counter != "n" ]];then
 	multiple_download_dict["$save_file"]="$url"
 	done
 
-    if [[ $output_dir_switch != true ]];then
+    if [[ $opt_dest_dir_switch != true ]];then
 		multi_dnc "$MULTI_DIR"
 	else
-		multi_dnc "$output_dir"
+		multi_dnc "$opt_dest_dir"
 	fi
 fi
 
@@ -433,10 +433,10 @@ if [[ $multiple_switch_counter == "n" ]];then
 		multiple_download_dict["$save_file"]="$url"
 	done
 
-    if [[ $output_dir_switch != true ]];then
+    if [[ $opt_dest_dir_switch != true ]];then
 		multi_dnc "$MULTI_DIR"
 	else
-		multi_dnc "$output_dir"
+		multi_dnc "$opt_dest_dir"
 	fi
 fi
 }
