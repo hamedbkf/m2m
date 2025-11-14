@@ -196,7 +196,18 @@ Flags:
 	"
 }
 
+check_dependencies(){
+	for cmd in yt-dlp ffmpeg jq;do
+		if ! command -v $cmd >/dev/null 2>&1; then
+			echo -e "$red[!] m2m: Error: $cmd not installed$norm"
+			exit 1
+		fi
+	done
+}
+
 main(){
+
+check_dependencies
 
 for arg in "$@";do
 	case $arg in
