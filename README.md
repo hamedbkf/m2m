@@ -101,7 +101,7 @@ Enter the URL(type 'done' when you are done): done
   - `$HOME/Music/ytdownloads/playlists` for playlist downloads.
 - Also the error logs are saved in `$HOME/.local/share` by default, i'd personally suggest you keep it like that, but if you know what you are doing changing it would not have much effect.
 - You can add the `-d` flag followed by any _path_  to have **m2m** save the file(s) there.
-- The playlist flags `-pl|--playlist|-PL` create a directory in the current working directory by the name of the title of the playlist and all the files are saved in it.
+- The playlist flags `-pl|--playlist|-PL` create a directory in `$PLAYLIST_DIR` by the name of the title of the playlist and all the files are saved in it.
 - You can change both `$YTDIR` and `$MULTI_DIR` as per your convenience.
 - You can convert to any media format supported by `ffmpeg` just don't forget to put the extension after the file name.
 - I have used `-f best` option for `yt-dlp` to fetch the highest quality stream available, however if you want to optimize `m2m` for less data usage, you can change that to any other stream you like.
