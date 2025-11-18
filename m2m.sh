@@ -7,7 +7,7 @@ yellow="\033[1;33m"
 blue="\033[1;34m"
 
 #Script natives
-VERSION="2.3.8-2"
+VERSION="2.3.9-1"
 
 #Making arrangements before executing the script
 
