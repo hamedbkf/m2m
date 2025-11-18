@@ -63,13 +63,14 @@ multi_dnc(){
 		if [[ $? -eq 0 ]];then
 	
 			echo -e "$green[✓] Stream downloaded $norm"
-			
+			echo -e "$blue[*] Converting stream $counter to $file $norm"
+
 			if [[ $file == *"wav"* ]] || [[ $file == *"mp3"* ]];then
-				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log" &
+				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log" 
 			else
-				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log" &
+				ffmpeg -i "$dest_dir/ytvideo.webm" -c copy "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log" 
 			fi
-			spinner "$blue" "Converting$yellow $counter$blue to $yellow$file $norm"
+			#spinner "$blue" "Converting$yellow $counter$blue to $yellow$file $norm"
 
 			if [[ $? -eq 0  ]];then
 				echo -e "$green[✓] Stream $file saved to filesystem$norm \n"
@@ -140,13 +141,14 @@ download_pl(){
 		if [[ $? -eq 0 ]];then
 	
 			echo -e "$green[✓] Stream $counter downloaded $norm"
+			echo -e "$blue[*] Converting stream $counter $norm"
 			
 			if [[ $filetype == *"wav"* ]] || [[ $filetype == *"mp3"* ]];then
-				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$name.$filetype" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-playlist-download.log" &
+				ffmpeg -i "$dest_dir/ytvideo.webm" "$dest_dir/$name.$filetype" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-playlist-download.log" 
 			else
-				ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$dest_dir/$name.$filetype" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-playlist-download.log" &
+				ffmpeg -i "$dest_dir/ytvideo.webm" -c copy "$dest_dir/$name.$filetype" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-playlist-download.log" 
 			fi
-            spinner "$blue" "Converting stream $counter $norm"
+            #spinner "$blue" "Converting stream $counter $norm"
 
 			if [[ $? -eq 0  ]];then
 				echo -e "$green[✓] Stream $counter saved to filesystem$norm \n"
@@ -164,6 +166,14 @@ download_pl(){
 		fi
 		counter=$(($counter+1))
 	done
+}
+
+get_quality(){
+	url="$1"
+	quality="$2"
+	stream=$(yt-dlp -F --no-warnings "$url" | grep "$quality" | grep -v dash | grep en)
+	return stream
+	
 }
 
 show_version(){
@@ -315,12 +325,14 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 		exit 1
 	fi
 	
+	echo -e "$blue[*] Converting the stream $norm"
+
 	if [[ "$file_name" == *"wav"* ]] || [[ $file_name == *"mp3"* ]];then
-		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" -y 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log" &
+		ffmpeg -i "$dest_dir/ytvideo.webm" "$file_save_location/$file_name" -y 1>/dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log" 
 	else
-		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log" &
+		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log" 
 	fi
-	spinner "$blue" "Converting stream $yellow$title$blue to $yellow$file_name$norm"
+	#spinner "$blue" "Converting stream $yellow$title$blue to $yellow$file_name$norm"
 
 	#Block telling the user the final action and removing the ghost file.
 	if [[ $? -eq 0  ]];then
