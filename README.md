@@ -108,7 +108,7 @@ Enter the URL(type 'done' when you are done): done
 
 
 ## Contributers
-- Big thanks to [hamed](https://github.com/hamedbkf) for adding the output directory flag `-d` and the spinner download animation while file downloading and conversion.
+- Big thanks to [hamed](https://github.com/hamedbkf) for adding the output directory flag `-d` and the spinner download animation while file downloading and conversion (The spinner was later removed because of some bugs and that's why it is no longer there but if you look into the previous commits you will be able to see hamed's works).
 
 ## Support
 
