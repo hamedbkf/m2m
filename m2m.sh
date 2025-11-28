@@ -7,7 +7,7 @@ yellow="\033[1;33m"
 blue="\033[1;34m"
 
 #Script natives
-VERSION="2.3.9-1"
+VERSION="2.4.0-1"
 
 #Making arrangements before executing the script
 
@@ -26,25 +26,6 @@ playlist_switch=false
 multiple_switch=false
 opt_dest_dir_switch=false
 
-#Processing spinner/indicator
-spinner(){
-    color=$1            #Color applied before spinner
-    step_output=$2      #Step/Operation text
-    pid=$!              #PID of most recent process (now in background)
-    spin="/-\\|/-\\|";
-    spinner_len=${#spin}
-
-    while kill -0 $pid 2>/dev/null  #While the process PID still exists
-    do
-        i=$(( (i+1) % $spinner_len ))
-        echo -ne "\r$color[${spin:i:1}] $step_output"
-        sleep .3
-    done
-
-    #Step done
-    echo -ne "\r$color[*] $step_output"
-    echo -e
-}
 
 multi_dnc(){
 	dest_dir=$1
@@ -58,7 +39,7 @@ multi_dnc(){
 		else
 			yt-dlp --quiet --progress --no-warnings -f best $url -o "$dest_dir/ytvideo.webm"
 		fi
-		#spinner "$blue" "Initiating download for stream $yellow $counter $norm"
+
 		
 		if [[ $? -eq 0 ]];then
 	
@@ -70,7 +51,7 @@ multi_dnc(){
 			else
 				ffmpeg -i "$dest_dir/ytvideo.webm" -c copy "$dest_dir/$file" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-multi-download.log" 
 			fi
-			#spinner "$blue" "Converting$yellow $counter$blue to $yellow$file $norm"
+
 
 			if [[ $? -eq 0  ]];then
 				echo -e "$green[✓] Stream $file saved to filesystem$norm \n"
@@ -136,7 +117,7 @@ download_pl(){
 		else
 			yt-dlp --quiet --progress --no-warnings -f best $url -o "$dest_dir/ytvideo.webm"
 		fi
-		#spinner "$blue" "Downloading stream $counter ($name)"
+
 
 		if [[ $? -eq 0 ]];then
 	
@@ -148,7 +129,7 @@ download_pl(){
 			else
 				ffmpeg -i "$dest_dir/ytvideo.webm" -c copy "$dest_dir/$name.$filetype" 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg-playlist-download.log" 
 			fi
-            #spinner "$blue" "Converting stream $counter $norm"
+
 
 			if [[ $? -eq 0  ]];then
 				echo -e "$green[✓] Stream $counter saved to filesystem$norm \n"
@@ -283,6 +264,11 @@ if [[ -z "$LINK" && $playlist_switch == false && $multiple_switch == false ]]; t
     exit 1
 fi
 
+if [[ "$#" -eq 1 && -z "$LINK" ]];then
+	show_help
+	exit 1	
+fi
+
 if [[ -z "$file_name" && $playlist_switch == false && $multiple_switch == false ]]; then
     echo -e "$yellow[!] m2m: Error: Missing filename argument after URL$norm"
     exit 1
@@ -306,7 +292,7 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 	else
 		yt-dlp --quiet --progress --no-warnings -f best $LINK -o "$dest_dir/ytvideo.webm"
 	fi
-	#spinner "$blue" "Downloading stream $yellow$title$norm"
+
 
 	#Block telling the user whether the stream was downloaded or not
 	if [[ $? -eq 0 ]];then
@@ -332,7 +318,7 @@ if [[ $multiple_switch != true  && $playlist_switch != true ]];then
 	else
 		ffmpeg -i "$dest_dir/ytvideo.webm" -map 0:a:0 -map 0:v:0 -c copy "$file_save_location/$file_name" -y 1> /dev/null 2>"$ERROR_LOG/$DATE-ffmpeg.log" 
 	fi
-	#spinner "$blue" "Converting stream $yellow$title$blue to $yellow$file_name$norm"
+
 
 	#Block telling the user the final action and removing the ghost file.
 	if [[ $? -eq 0  ]];then
