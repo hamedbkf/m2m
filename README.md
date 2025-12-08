@@ -20,6 +20,8 @@ A minimal bash tool to convert YouTube video files to any other supported media 
 ```bash
 m2m "https://www.youtube.com/watch?v=EYI489Dc4Sc" outputfile.mp3
 ```
+If no name is provided, the video will be downloaded in WAV format with its youtube name
+
 Change the extension form `.mp3` to anything you like.
 
 ### For batch downloads:
