@@ -7,7 +7,7 @@ yellow="\033[1;33m"
 blue="\033[1;34m"
 
 #Script natives
-VERSION="2.4.0-1"
+VERSION="2.4.1-1"
 
 #Making arrangements before executing the script
 
@@ -149,11 +149,17 @@ download_pl(){
 	done
 }
 
+get_title(){
+    video_url="$1"
+    title=$(yt-dlp --no-warnings -J "$video_url" | jq -r '.title' | tr -cd '[:alnum:] ' | tr ' ' '_')
+    echo "$title".wav
+}
+
 get_quality(){
 	url="$1"
 	quality="$2"
 	stream=$(yt-dlp -F --no-warnings "$url" | grep "$quality" | grep -v dash | grep en)
-	return stream
+	echo "$stream"
 	
 }
 
@@ -171,6 +177,7 @@ show_help(){
 |_|  |_|_____|_|  |_|           
 
 Usage: For single downloads
+$blue[*] If no name is provided, the video will be downloaded in WAV format with its original name$norm
 m2m [-d <destination_dir>] <url> <filename.ext>
 
 For multiple downloads: (put number of downloads as 'n' for infinite downloads)
@@ -269,9 +276,8 @@ if [[ "$#" -eq 1 && -z "$LINK" ]];then
 	exit 1	
 fi
 
-if [[ -z "$file_name" && $playlist_switch == false && $multiple_switch == false ]]; then
-    echo -e "$yellow[!] m2m: Error: Missing filename argument after URL$norm"
-    exit 1
+if [[ "$file_name" == "placeholder" && $playlist_switch == false && $multiple_switch == false ]]; then
+    file_name=$(get_title "$LINK")
 fi
 
 
